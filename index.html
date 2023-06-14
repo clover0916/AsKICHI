@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="icon" href="kagipo_icon.ico">
+        <title>カギー･ポッターと科学の迷宮</title>
+        <script src="program.js"></script>
+    </head>
+    <body>
+        <h1>R5文化祭 教室混雑状況管理サイト</h1>
+
+        <script>
+            document.currentScript.insertAdjacentHTML('beforebegin','<p></p>')
+        </script>
+
+        <form>
+            <h2>管理者ログインフォーム</h2>
+            ユーザーID:<input type="text" id="admin-id"><br>
+            パスワード:<input type="password" id="admin-password"><br>
+            <input type="button" value="ログイン" onclick="if(isLoggedIn()){alert('ログインに成功しました。');}else{alert('IDまたはパスワードが間違っています。');}">
+        </form>
+        <hr>
+        <h2>各教室の混雑状況</h2>
+        <table border="1">
+            <tr>
+                <th>教室</th>
+                <th colspan="2">混雑状況</th>
+                <th colspan="2">実際に表示する部分</th>
+            </tr>
+            <tr>
+                <td>101</td>
+                <td>
+                    <select name="congestion" id="101-status">
+                        <option value="aquamarine">混んでいない</option>
+                        <option value="chartreuse">それ程混んでいない</option>
+                        <option value="gold">混んでいる</option>
+                        <option value="darkorange">とても混んでいる</option>
+                        <option value="crimson">満員</option>
+                    </select>
+                </td>
+                <td><button onclick="updateRoom('101');">更新</button></td>
+                <td id="101-con"></td>
+            </tr>
+            <tr>
+                <td>102</td>
+                <td>
+                    <select name="congestion" id="102-status">
+                        <option value="aquamarine">混んでいない</option>
+                        <option value="chartreuse">それ程混んでいない</option>
+                        <option value="gold">混んでいる</option>
+                        <option value="darkorange">とても混んでいる</option>
+                        <option value="crimson">満員</option>
+                    </select>
+                </td>
+                <td><button onclick="updateRoom('102');">更新</button></td>
+                <td id="102-con"></td>
+            </tr>
+            <tr>
+                <td>103</td>
+                <td>
+                    <select name="congestion" id="103-status">
+                        <option value="aquamarine">混んでいない</option>
+                        <option value="chartreuse">それ程混んでいない</option>
+                        <option value="gold">混んでいる</option>
+                        <option value="darkorange">とても混んでいる</option>
+                        <option value="crimson">満員</option>
+                    </select>
+                </td>
+                <td><button onclick="updateRoom('103');">更新</button></td>
+                <td id="103-con"></td>
+            </tr>
+            <tr>
+                <td>104</td>
+                <td>
+                    <select name="congestion" id="104-status">
+                        <option value="aquamarine">混んでいない</option>
+                        <option value="chartreuse">それ程混んでいない</option>
+                        <option value="gold">混んでいる</option>
+                        <option value="darkorange">とても混んでいる</option>
+                        <option value="crimson">満員</option>
+                    </select>
+                </td>
+                <td><button onclick="updateRoom('104');">更新</button></td>
+                <td id="104-con"></td>
+            </tr>
+        </table>
+        <hr>
+    </body>
+</html>
