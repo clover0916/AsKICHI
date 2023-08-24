@@ -9,10 +9,31 @@ export default function Group({
   host: string;
   title: string;
   place: string;
-  status?: number;
+  status: number;
 }) {
+  const statusColor = (status: number) => {
+    switch (status) {
+      case 0:
+        return "bg-sky-50";
+      case 1:
+        return "bg-green-50";
+      case 2:
+        return "bg-yellow-50";
+      case 3:
+        return "bg-orange-50";
+      case 4:
+        return "bg-red-50";
+      default:
+        return "bg-sky-50";
+    }
+  };
+
   return (
-    <div className="flex flex-col justify-between shadow rounded bg-blue-100 overflow-hidden px-4 py-2">
+    <div
+      className={`flex flex-col justify-between shadow rounded overflow-hidden px-4 py-2 ${statusColor(
+        status
+      )}`}
+    >
       <div className="flex justify-between items-center">
         <div className="inline-flex items-center gap-4">
           <h2 className="text-2xl font-bold">{host}</h2>

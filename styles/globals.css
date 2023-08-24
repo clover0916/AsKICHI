@@ -1,3 +1,107 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: "futura-pt", "fot-udkakugo-large-pr6n", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: white;
+}
+
+.now {
+  position: relative;
+  color: black;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  background-color: rgb(254 249 195);
+}
+
+.now::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  border-left: 24px solid rgb(254 249 195);
+  border-top: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-bottom: 24px solid transparent;
+  z-index: 40;
+}
+
+.upcoming {
+  position: relative;
+  color: black;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(250 204 21);
+}
+
+.upcoming::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  border-left: 24px solid rgb(250 204 21);
+  border-top: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-bottom: 24px solid transparent;
+  z-index: 30;
+}
+
+.third-show {
+  position: relative;
+  font-size: 32px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(29 78 216);
+}
+
+.third-show::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  border-left: 24px solid rgb(29 78 216);
+  border-top: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-bottom: 24px solid transparent;
+  z-index: 20;
+}
+
+.fourth-show {
+  position: relative;
+  font-size: 32px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(30 64 175);
+}
+
+.fourth-show::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  border-left: 24px solid rgb(30 64 175);
+  border-top: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-bottom: 24px solid transparent;
+  z-index: 10;
+}
+
+.fifth-show {
+  position: relative;
+  font-size: 32px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(30 58 138);
+}
