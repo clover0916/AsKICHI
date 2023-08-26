@@ -36,8 +36,8 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={clsx("min-h-screen bg-background antialiased")}>
-        <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
+      <body className={clsx("min-h-screen antialiased")}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           {children}
         </Providers>
       </body>
