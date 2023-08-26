@@ -96,12 +96,12 @@ export default function Group({ title, host, place, crowded }: Props) {
           crowdedColor[crowded]
         )}
       >
-        <div className="h-8 text-2xl font-bold whitespace-nowrap overflow-ellipsis overflow-hidden">
+        <div className="text-2xl font-bold whitespace-nowrap overflow-ellipsis overflow-hidden">
           {title}
         </div>
-        <div className="text-xl font-semibold">{host}</div>
+        <div className="text-lg font-semibold">{host}</div>
         <div>{place}</div>
-        <div className="absolute right-0 bottom-0 flex p-4 gap-2">
+        <div className="absolute right-0 bottom-0 flex pb-3 pr-4 gap-2">
           <motion.div
             initial="hidden"
             animate={isTextVisible ? "visible" : "hidden"}
