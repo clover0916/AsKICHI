@@ -1,0 +1,32 @@
+関係
+リンク
+
+    RaspberryPi国内ミラー
+    スイッチサイエンス
+    秋月電子
+    ラズパイでOpenCV
+
+BYOD 環境(Tokyo_Metropolitan_School)
+最初に証明書をダウンロードする
+ラズパイ起動しコマンドから
+wget http://www.tama-st-h.local/nacacert-der.cer
+****各自のID　PASSを記入
+以下の内容を書き込む
+　nano /etc/wpa_supplicant/wpa_supplicant.conf
+update_config=1
+country=JP
+network={
+ssid="Tokyo_Metropolitan_School_2"
+proto=RSN
+priority=1
+key_mgmt=WPA-EAP
+pairwise=CCMP
+auth_alg=OPEN
+eap=PEAP
+ca_cert="/home/pi/nacacert-der.cer"
+id_str="au20rd001.ict.kyoiku.metro.tokyo.jp"
+identity="w151****"
+password="********"
+phase1="peaplabel=0"
+phase2="auth=MSCHAPV2"
+} 
