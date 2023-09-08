@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { BsPerson, BsPersonFill } from "react-icons/bs";
 
@@ -89,53 +89,51 @@ export default function Group({ title, host, place, crowded }: Props) {
   }, [isTextVisible]);
 
   return (
-    <AnimatePresence>
-      <div
-        className={clsx(
-          "Group1 w-[416px] h-[132px] relative rounded-lg p-4",
-          crowdedColor[crowded]
-        )}
-      >
-        <div className="text-2xl font-bold whitespace-nowrap overflow-ellipsis overflow-hidden">
-          {title}
-        </div>
-        <div className="text-lg font-semibold">{host}</div>
-        <div>{place}</div>
-        <div className="absolute right-0 bottom-0 flex pb-3 pr-4 gap-2">
-          <motion.div
-            initial="hidden"
-            animate={isTextVisible ? "visible" : "hidden"}
-            variants={{
-              hidden: {
-                display: "none",
-                opacity: 0,
-              },
-              visible: {
-                display: "block",
-                opacity: 1,
-              },
-            }}
-          >
-            {crowdedText[crowded]}
-          </motion.div>
-          <motion.div
-            initial="hidden"
-            animate={isTextVisible ? "hidden" : "visible"}
-            variants={{
-              hidden: {
-                display: "none",
-                opacity: 0,
-              },
-              visible: {
-                display: "flex",
-                opacity: 1,
-              },
-            }}
-          >
-            {crowdedIcons(crowded)}
-          </motion.div>
-        </div>
+    <div
+      className={clsx(
+        "Group1 w-[416px] h-[132px] relative rounded-lg p-4",
+        crowdedColor[crowded]
+      )}
+    >
+      <div className="text-2xl font-bold whitespace-nowrap overflow-ellipsis overflow-hidden">
+        {title}
       </div>
-    </AnimatePresence>
+      <div className="text-lg font-semibold">{host}</div>
+      <div>{place}</div>
+      <div className="absolute right-0 bottom-0 flex pb-3 pr-4 gap-2">
+        <motion.div
+          initial="hidden"
+          animate={isTextVisible ? "visible" : "hidden"}
+          variants={{
+            hidden: {
+              display: "none",
+              opacity: 0,
+            },
+            visible: {
+              display: "block",
+              opacity: 1,
+            },
+          }}
+        >
+          {crowdedText[crowded]}
+        </motion.div>
+        <motion.div
+          initial="hidden"
+          animate={isTextVisible ? "hidden" : "visible"}
+          variants={{
+            hidden: {
+              display: "none",
+              opacity: 0,
+            },
+            visible: {
+              display: "flex",
+              opacity: 1,
+            },
+          }}
+        >
+          {crowdedIcons(crowded)}
+        </motion.div>
+      </div>
+    </div>
   );
 }

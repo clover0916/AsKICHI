@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nodemon server/server.ts",
+    "dev-next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -12,6 +13,7 @@
     "@headlessui/react": "^1.7.17",
     "@keyv/sqlite": "^3.6.5",
     "@nextui-org/react": "^2.1.5",
+    "@nextui-org/system": "^2.0.5",
     "@prisma/client": "^5.2.0",
     "@react-aria/ssr": "^3.7.1",
     "@react-aria/visually-hidden": "^3.8.3",

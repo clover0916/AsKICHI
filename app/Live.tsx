@@ -10,8 +10,8 @@ export default function Live({
   return (
     <div
       className={clsx(
-        "w-60 text-xl font-bold grid place-items-center px-4 text-center",
-        now ? "bg-slate-600/30" : ""
+        "text-xl font-bold grid place-items-center px-4 text-center",
+        now ? "bg-slate-600/30 w-[45rem]" : "w-60"
       )}
     >
       {children}
