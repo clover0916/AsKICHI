@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Clock } from "./Clock";
 import Display from "./DIsplay";
-import Program from "./Program";
 
 type Event = {
   id: string;
@@ -69,7 +68,10 @@ export default function Index() {
         <Clock />
       </div>
       <div className="Timetable w-[1440px] h-[270px] left-0 top-[810px] absolute bg-slate-950 flex flex-col">
-        <Program />
+        <div className="h-full font-bold flex items-center justify-center text-4xl">
+          工事中
+        </div>
+        {/*<Program />*/}
       </div>
       <div className=" w-[480px] h-[108px] left-[1440px] top-[216px] absolute text-center text-white text-[40px] font-bold bg-slate-900">
         混雑状況
