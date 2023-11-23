@@ -1,3 +1,3 @@
 export const testschedule = () => {
-    console.log("もう寝ようぜ笑");
+    console.log("TEST SCHEDULE");
 }
