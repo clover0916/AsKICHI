@@ -1,12 +1,7 @@
 import "@/styles/globals.css";
 import clsx from "clsx";
 import { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
 import { Providers } from "./providers";
-
-const noto_sans_jp = Noto_Sans_JP({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "混雑状況",
@@ -19,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="ja" className='dark'>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -37,7 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body className={clsx("min-h-screen antialiased")}>
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+        <Providers>
           {children}
         </Providers>
       </body>

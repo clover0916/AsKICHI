@@ -9,6 +9,10 @@ module.exports = {
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    fontFamily: {
+      futurapt: ['futura-pt', 'sans-serif'],
+      fotudkakugolargepr6n: ['fot-udkakugo-large-pr6n', 'sans-serif'],
+    },
     extend: {},
   },
   darkMode: "class",
