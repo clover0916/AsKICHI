@@ -3,17 +3,19 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Button, Card, CardBody, Divider, Input, Spacer, Link } from '@nextui-org/react'
-import { useMemo, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 
 export default function SignInPage() {
   return (
     <main>
-      <LoginForm />
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </main>
   )
 }
 
-export const LoginForm = () => {
+const LoginForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string>("")
@@ -38,7 +40,6 @@ export const LoginForm = () => {
         callbackUrl,
       })
       if (response?.error) {
-        console.log(response)
         setError("エラーが発生しました。メールアドレスがパスワードが間違っている可能性があります")
       } else {
         router.push(callbackUrl)
@@ -46,6 +47,10 @@ export const LoginForm = () => {
     } catch (err) {
       console.log(err)
     }
+  }
+
+  const onRegister = () => {
+    router.push(`/signup?callbackUrl=${searchParams.get('callbackUrl') || '/'}`)
   }
 
   return (
@@ -88,7 +93,7 @@ export const LoginForm = () => {
           <Link href={"/faq?q=forget_password"} className='text-sm'>パスワードを忘れた</Link>
           <Divider className='my-4' />
           <div>
-            <Button as='a' href='/signup' className='w-full'>新規登録</Button>
+            <Button onClick={onRegister} className='w-full'>新規登録</Button>
           </div>
         </CardBody>
       </Card>

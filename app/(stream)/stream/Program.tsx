@@ -110,7 +110,7 @@ export default function Program() {
       default:
         return <div />;
     }
-  }, [show, program]);
+  }, [show, program, progress]);
 
   return (
     <>

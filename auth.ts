@@ -5,7 +5,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
 
 export const config = {
   providers: [
@@ -68,7 +67,6 @@ export const config = {
   adapter: PrismaAdapter(prisma),
   pages: {
     signIn: "/signin",
-    newUser: "/signup",
   },
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,

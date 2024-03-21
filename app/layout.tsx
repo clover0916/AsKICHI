@@ -1,11 +1,28 @@
 import "@/styles/globals.css";
 import clsx from "clsx";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
+import TypekitLoader from "./TypekitLoader";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "混雑状況",
-  description: "混雑状況を確認できます",
+  title: {
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
 };
 
 export default function RootLayout({
@@ -15,27 +32,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" className='dark'>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(d) {
-                var config = {
-                  kitId: 'zoq0dce',
-                  scriptTimeout: 3000,
-                  async: true
-                },
-                h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
-              })(document);
-            `,
-          }}
-        />
-      </head>
-      <body className={clsx("min-h-screen antialiased")}>
-        <Providers>
+      <TypekitLoader />
+      <body className={clsx("min-h-screen antialiased duration-100")}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "dark", children }}>
           {children}
         </Providers>
       </body>
-    </html>
+    </html >
   );
 }

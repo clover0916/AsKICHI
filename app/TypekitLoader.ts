@@ -9,12 +9,14 @@ const TypekitLoader: React.FC = () => {
         scriptTimeout: 3000,
         async: true,
       };
-      const h = d.documentElement;
+
+      const h = document.documentElement;
       const t = setTimeout(() => {
         h.className =
           h.className.replace(/\bwf-loading\b/g, "") + " wf-inactive";
       }, config.scriptTimeout);
-      const tk = d.createElement("script");
+
+      const tk = document.createElement("script");
 
       h.className += " wf-loading";
       tk.src = `https://use.typekit.net/${config.kitId}.js`;
@@ -29,7 +31,7 @@ const TypekitLoader: React.FC = () => {
         clearTimeout(t);
       };
 
-      const s = d.getElementsByTagName("script")[0];
+      const s = document.getElementsByTagName("script")[0];
       s.parentNode!.insertBefore(tk, s);
     })(document);
   }, []);

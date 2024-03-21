@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
-import { NextApiRequest, NextApiResponse } from "next";
 
 // 全ユーザー取得API
-export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
+export const GET = async () => {
   try {
     const users = await prisma.user.findMany();
 

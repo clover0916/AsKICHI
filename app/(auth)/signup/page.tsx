@@ -4,16 +4,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Button, Card, CardBody, Input, Spacer } from '@nextui-org/react'
 import { useMemo, useState } from 'react'
+import { Suspense } from 'react'
 
 export default function SignInPage() {
   return (
     <main>
-      <LoginForm />
+      <Suspense>
+        <SignUpForm />
+      </Suspense>
     </main>
   )
 }
 
-export const LoginForm = () => {
+const SignUpForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string>("")
@@ -58,8 +61,17 @@ export const LoginForm = () => {
         }),
       })
       if (response?.ok) {
-        signIn()
-        router.push(callbackUrl)
+        const res = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+          callbackUrl,
+        })
+        if (res?.error) {
+          setError("エラーが発生しました。")
+        } else {
+          router.push(callbackUrl)
+        }
       } else {
         const data = await response.json()
         setError(data.message)

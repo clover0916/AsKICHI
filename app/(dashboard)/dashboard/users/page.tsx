@@ -22,8 +22,8 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import React, { useEffect, useMemo, useState } from "react";
-import { EditIcon } from "@/app/dashboard/components/EditIcon";
-import { DeleteIcon } from "@/app/dashboard/components/DeleteIcon";
+import { EditIcon } from "@/app/(dashboard)/dashboard/components/EditIcon";
+import { DeleteIcon } from "@/app/(dashboard)/dashboard/components/DeleteIcon";
 
 interface IUser {
   id: string;
@@ -65,8 +65,6 @@ const DashboardPage: React.FC = () => {
           role: user.role,
         }),
       });
-      const data = await res.json();
-      console.log(data);
       fetchUsers();
     } catch (error) {
       console.error(error);
@@ -86,7 +84,6 @@ const DashboardPage: React.FC = () => {
           }),
         });
         const data = await res.json();
-        console.log(data);
         fetchUsers();
       } catch (error) {
         console.error(error);

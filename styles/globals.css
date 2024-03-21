@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  visibility: hidden;
+}
+
+html.wf-active {
+  visibility: visible;
+}
+
 body {
   font-family: "futura-pt", "fot-udkakugo-large-pr6n", sans-serif;
 }
