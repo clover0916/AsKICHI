@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   if (
-    !(req.auth?.user.role === "admin") &&
+    !(req.auth?.user.role === "ADMIN") &&
     req.nextUrl.pathname.startsWith("/dashboard")
   ) {
     const url = req.nextUrl.clone();

@@ -4,22 +4,17 @@ import { auth } from "auth";
 import prisma from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
-// ユーザー情報更新API
+// ユーザー情報更新API（ユーザー側）
 export const POST = auth(async (req) => {
   try {
     if (!req.auth)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-    if (req.method !== "POST")
-      return NextResponse.json({ message: "Bad Request" }, { status: 405 });
 
     const { name, old_password, new_password } = await req.json();
 
     if (!req.auth?.user?.email) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
-    console.log("req.auth.user.email", req.auth.user.email);
 
     const user = await prisma.user.findUnique({
       where: { email: req.auth.user.email },

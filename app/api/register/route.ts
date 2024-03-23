@@ -6,9 +6,6 @@ import prisma from "@/lib/prisma";
 // ユーザー新規登録API
 export const POST = async (req: Request, res: NextResponse) => {
   try {
-    if (req.method !== "POST")
-      return NextResponse.json({ message: "Bad Request" }, { status: 405 });
-
     const { name, email, password } = await req.json();
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -25,7 +22,7 @@ export const POST = async (req: Request, res: NextResponse) => {
       data: {
         email,
         name,
-        role: "student",
+        role: "STUDENT",
         hashedPassword,
         image: "",
       },

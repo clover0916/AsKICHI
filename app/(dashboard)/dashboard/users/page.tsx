@@ -3,12 +3,17 @@
 import {
   Button,
   Chip,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
   Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Pagination,
   Select,
   SelectItem,
   Table,
@@ -21,23 +26,101 @@ import {
   User,
   useDisclosure,
 } from "@nextui-org/react";
-import React, { useEffect, useMemo, useState } from "react";
-import { EditIcon } from "@/app/(dashboard)/dashboard/components/EditIcon";
-import { DeleteIcon } from "@/app/(dashboard)/dashboard/components/DeleteIcon";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { EditIcon } from "@/components/EditIcon";
+import { DeleteIcon } from "@/components/DeleteIcon";
+import toast, { Toaster } from "react-hot-toast";
+import { Selection, SortDescriptor } from "@react-types/shared";
+import { SearchIcon } from "@/components/icons";
+import { ChevronDownIcon } from "@/components/ChevronDownIcon";
+import { PlusIcon } from "@/components/PlusIcon";
 
 interface IUser {
   id: string;
   name: string | null;
   email: string | null;
-  role: string | null;
+  role: "ADMIN" | "TEACHER" | "STUDENT" | null;
   image: string | null;
   password: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const headerColumns = [
+  { uid: "name", name: "名前", sortable: true },
+  { uid: "id", name: "ID", sortable: true },
+  { uid: "role", name: "ロール", sortable: true },
+  { uid: "actions", name: "アクション" },
+];
+
+const roles: Array<{ key: string, label: string, color: "danger" | "warning" | "success" | "default" | "primary" | "secondary" | undefined }> = [
+  { key: "ADMIN", label: "管理者", color: "danger" },
+  { key: "TEACHER", label: "教師", color: "warning" },
+  { key: "STUDENT", label: "生徒", color: "success" },
+];
+
+const statusOptions = [
+  { name: "管理者", uid: "ADMIN" },
+  { name: "教師", uid: "TEACHER" },
+  { name: "生徒", uid: "STUDENT" },
+];
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 const DashboardPage: React.FC = () => {
+  const [filterValue, setFilterValue] = React.useState("");
+  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
+  const [roleFilter, setStatusFilter] = React.useState<Selection>("all");
   const [users, setUsers] = useState<IUser[]>([]);
   const [editingUser, setEditingUser] = useState<IUser | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
+    column: "createdAt",
+    direction: "ascending",
+  });
+  const [page, setPage] = React.useState(1);
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
+  const hasSearchFilter = Boolean(filterValue);
+
+  const filteredItems = React.useMemo(() => {
+    let filteredUsers = [...users];
+
+    if (hasSearchFilter) {
+      filteredUsers = filteredUsers.filter((user) =>
+        user.name && user.name.toLowerCase().includes(filterValue.toLowerCase()),
+      );
+    }
+    if (roleFilter !== "all" && Array.from(roleFilter).length !== statusOptions.length) {
+      filteredUsers = filteredUsers.filter((user) =>
+        Array.from(roleFilter).includes(user.role as string),
+      );
+    }
+
+    return filteredUsers;
+  }, [users, hasSearchFilter, roleFilter, filterValue]);
+
+  const pages = Math.ceil(filteredItems.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return filteredItems.slice(start, end);
+  }, [page, filteredItems, rowsPerPage]);
+
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const first = a[sortDescriptor.column as keyof typeof a];
+      const second = b[sortDescriptor.column as keyof typeof b];
+      const cmp = (first !== null && second !== null) ? (first < second ? -1 : first > second ? 1 : 0) : 0;
+
+      return sortDescriptor.direction === "descending" ? -cmp : cmp;
+    });
+  }, [sortDescriptor, items]);
 
   useEffect(() => {
     fetchUsers();
@@ -53,71 +136,47 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const changeUserRole = async (user: IUser) => {
-    try {
-      const res = await fetch("/api/users/role", {
+  const changeUserInfo = async (id: string, name: string, email: string, password: string, role: string) => {
+    const fetchAPI = new Promise<void>((resolve, reject) => {
+      fetch("/api/users/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: user.id,
-          role: user.role,
+          id: id,
+          name: name,
+          email: email,
+          password: password,
+          role: role,
         }),
+      }).then((response) => {
+        if (response.ok) {
+          resolve();
+        } else {
+          reject();
+        }
+      }).catch((error) => {
+        reject(error);
       });
+    });
+    toast.promise(fetchAPI, {
+      loading: "更新中...",
+      success: "ユーザー情報を更新しました",
+      error: "ユーザー情報の更新に失敗しました",
+    }).then(() => {
       fetchUsers();
-    } catch (error) {
-      console.error(error);
-    }
+    });
   };
 
   const deleteUser = async (user: IUser) => {
-    if (confirm("本当にこのユーザーを削除しますか？")) {
-      try {
-        const res = await fetch("/api/users/delete", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: user.id,
-          }),
-        });
-        const data = await res.json();
-        fetchUsers();
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    setEditingUser(user);
+    onDeleteOpen();
   };
-
-  const columns = [
-    { uid: "name", name: "名前" },
-    { uid: "id", name: "ID" },
-    { uid: "role", name: "ロール" },
-    { uid: "actions", name: "アクション" },
-  ];
-
-  const statusColorMap: {
-    [key: string]: "danger" | "warning" | "success" | "default" | "primary" | "secondary" | undefined;
-  } = useMemo(
-    () => ({
-      admin: "danger",
-      teacher: "warning",
-      student: "success",
-    }),
-    []
-  );
-
-  const roles = [
-    { value: "admin", label: "管理者" },
-    { value: "teacher", label: "教師" },
-    { value: "student", label: "生徒" },
-  ];
 
   const handleEditUser = (user: IUser) => {
     setEditingUser(user);
-    onOpen();
+    onEditOpen();
   };
 
   const renderCell = (user: IUser, columnKey: React.Key) => {
@@ -140,17 +199,17 @@ const DashboardPage: React.FC = () => {
         return (
           <Chip
             className="capitalize"
-            color={statusColorMap[user.role || ""] || "default"}
+            color={roles.find((role) => role.key === user.role)?.color}
             size="sm"
             variant="flat"
           >
-            {roles.find((role) => role.value === user.role)?.label || "未設定"}
+            {roles.find((role) => role.key === user.role)?.label}
           </Chip>
         );
       case "actions":
         return (
           <div className="relative flex items-center gap-2">
-            <Tooltip content="Edit user">
+            <Tooltip content="編集">
               <span
                 className="text-lg text-default-400 cursor-pointer active:opacity-50"
                 onClick={() => handleEditUser(user)}
@@ -158,7 +217,7 @@ const DashboardPage: React.FC = () => {
                 <EditIcon />
               </span>
             </Tooltip>
-            <Tooltip color="danger" content="Delete user">
+            <Tooltip color="danger" content="消去">
               <span
                 className="text-lg text-danger cursor-pointer active:opacity-50"
                 onClick={() => deleteUser(user)}
@@ -174,20 +233,43 @@ const DashboardPage: React.FC = () => {
   };
 
   const EditUserModal = () => {
-    const [editedUser, setEditedUser] = useState<IUser>(editingUser ?? ({} as IUser));
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
-    };
+    const [name, setName] = useState<string>(editingUser?.name || "");
+    const [email, setEmail] = useState<string>(editingUser?.email || "");
+    const [password, setPassword] = useState<string>(editingUser?.password || "");
+    const [role, setRole] = useState<string>(editingUser?.role || "");
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      await changeUserRole(editedUser);
-      onClose();
+      if (!editingUser) return;
+      await changeUserInfo(editingUser.id, name, email, password, role);
+      onEditClose();
     };
 
+    const validateEmail = (value: string) => value.match(/^[a-zA-Z0-9._-]+@metro.ed.jp$/);
+
+    const isInvalidEmail = useMemo(() => {
+      if (email === '') return false;
+
+      return validateEmail(email) ? false : true;
+    }, [email]);
+
+    const isInvalidPassword = useMemo(() => {
+      if (password === '') return;
+
+      return password.length < 8;
+    }, [password]);
+
+    const canSubmit = useMemo(() => {
+      return (
+        (name && name !== editingUser?.name) ||
+        ((email && email !== editingUser?.email) && !isInvalidEmail) ||
+        ((password && password !== editingUser?.password) && !isInvalidPassword) ||
+        (role && role !== editingUser?.role)
+      );
+    }, [isInvalidEmail, isInvalidPassword, name, email, password, role]);
+
     return (
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isEditOpen} onClose={onEditClose}>
         <ModalContent>
           <form onSubmit={handleSubmit}>
             <ModalHeader>
@@ -198,45 +280,52 @@ const DashboardPage: React.FC = () => {
                 name="name"
                 label="名前"
                 variant="underlined"
-                value={editedUser.name || ""}
-                onChange={handleInputChange}
+                type="name"
+                value={name || ""}
+                onChange={(e) => setName(e.target.value)}
               />
               <Input
                 name="email"
                 label="メールアドレス"
                 variant="underlined"
-                value={editedUser.email || ""}
-                onChange={handleInputChange}
+                type="email"
+                value={email || ""}
+                isInvalid={isInvalidEmail}
+                color={isInvalidEmail ? 'danger' : 'default'}
+                errorMessage={isInvalidEmail && '学校配布のメールアドレスを使用してください'}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <Input
                 name="password"
                 label="パスワード"
                 variant="underlined"
                 type="password"
-                value={editedUser.password || ""}
-                onChange={handleInputChange}
+                autoComplete="new-password"
+                value={password || ""}
+                isInvalid={isInvalidPassword}
+                color={isInvalidPassword ? 'danger' : 'default'}
+                errorMessage={isInvalidPassword && 'パスワードは8文字以上にしてください'}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <Select
                 variant="underlined"
                 name="role"
                 label="ロール"
-                defaultSelectedKeys={[editedUser.role || ""]}
-                onChange={(e) => {
-                  setEditedUser({ ...editedUser, role: e.target.value });
-                }}
+                defaultSelectedKeys={[role || ""]}
+                onChange={(e) => setRole(e.target.value)}
               >
                 {roles.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>
+                  <SelectItem key={role.key} value={role.key}>
                     {role.label}
                   </SelectItem>
                 ))}
               </Select>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
-                Close
+              <Button color="danger" variant="light" onPress={onEditClose}>
+                閉じる
               </Button>
-              <Button color="primary" type="submit">
+              <Button color="primary" type="submit" isDisabled={!canSubmit}>
                 更新
               </Button>
             </ModalFooter>
@@ -246,18 +335,282 @@ const DashboardPage: React.FC = () => {
     );
   };
 
+  const DeleteUserModal = () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const fetchAPI = new Promise<void>((resolve, reject) => {
+        fetch("/api/users/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: editingUser?.id,
+          }),
+        }).then((response) => {
+          if (response.ok) {
+            resolve();
+          } else {
+            reject();
+          }
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+      toast.promise(fetchAPI, {
+        loading: "削除中...",
+        success: "ユーザーを削除しました",
+        error: "ユーザーの削除に失敗しました",
+      }).then(() => {
+        fetchUsers();
+      });
+      onDeleteClose();
+    }
+
+    return (
+      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
+        <ModalContent>
+          <form onSubmit={handleSubmit}>
+            <ModalHeader>
+              <h4 id="modal-title">ユーザーを削除</h4>
+            </ModalHeader>
+            <ModalBody>
+              <p>本当にこのユーザーを削除しますか？</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="danger" variant="light" onPress={onDeleteClose}>
+                閉じる
+              </Button>
+              <Button color="primary" type="submit">
+                削除
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
+  const CreateUserModal = () => {
+    const [amount, setAmount] = useState<string>("1");
+    const createRandomUser = async () => {
+      const fetchAPI = new Promise<void>((resolve, reject) => {
+        fetch("/api/users/create_random", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: parseInt(amount),
+          }),
+        }).then((response) => {
+          if (response.ok) {
+            resolve();
+          } else {
+            reject();
+          }
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+
+      toast.promise(fetchAPI
+        , {
+          loading: "作成中...",
+          success: "ユーザーを作成しました",
+          error: "ユーザーの作成に失敗しました",
+        }).then(() => {
+          fetchUsers();
+        });
+
+      onCreateClose();
+    }
+
+    return (
+      <Modal isOpen={isCreateOpen} onClose={onCreateClose}>
+        <ModalContent>
+          <form>
+            <ModalHeader>
+              <h4 id="modal-title">ユーザーを作成</h4>
+            </ModalHeader>
+            <ModalBody>
+              <p>本当にランダムなユーザーを作成しますか？</p>
+              <Input
+                name="amount"
+                label="作成数"
+                variant="underlined"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button color="danger" variant="light" onPress={onCreateClose}>
+                閉じる
+              </Button>
+              <Button color="primary" onPress={createRandomUser}>
+                作成
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
+  const onNextPage = React.useCallback(() => {
+    if (page < pages) {
+      setPage(page + 1);
+    }
+  }, [page, pages]);
+
+  const onPreviousPage = React.useCallback(() => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  }, [page]);
+
+  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
+
+  const onSearchChange = useCallback((value: string) => {
+    if (value) {
+      setFilterValue(value);
+      setPage(1);
+    } else {
+      setFilterValue("");
+    }
+  }, []);
+
+  const onClear = useCallback(() => {
+    setFilterValue("")
+    setPage(1)
+  }, [])
+
+  const topContent = useMemo(() => {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between gap-3 items-end">
+          <Input
+            isClearable
+            className="w-full sm:max-w-[44%]"
+            placeholder="ユーザー名で検索..."
+            startContent={<SearchIcon />}
+            value={filterValue}
+            onClear={() => onClear()}
+            onValueChange={onSearchChange}
+          />
+          <div className="flex gap-3">
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                  ロール
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Table Columns"
+                closeOnSelect={false}
+                selectedKeys={roleFilter}
+                selectionMode="multiple"
+                onSelectionChange={setStatusFilter}
+              >
+                {statusOptions.map((status) => (
+                  <DropdownItem key={status.uid} className="capitalize">
+                    {capitalize(status.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+            <Button color="primary" endContent={<PlusIcon />} onClick={onCreateOpen}>
+              ユーザーを追加
+            </Button>
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-default-400 text-small">合計 {users.length} ユーザー</span>
+          <label className="flex items-center text-default-400 text-small">
+            表示数:
+            <select
+              className="bg-transparent outline-none text-default-400 text-small"
+              onChange={onRowsPerPageChange}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    );
+  }, [filterValue, onSearchChange, roleFilter, onCreateOpen, users.length, onRowsPerPageChange, onClear]);
+
+  const bottomContent = useMemo(() => {
+    return (
+      <div className="py-2 px-2 flex justify-between items-center">
+        <span className="w-[30%] text-small text-default-400">
+          {selectedKeys === "all"
+            ? "All items selected"
+            : `${selectedKeys.size} of ${filteredItems.length} selected`}
+        </span>
+        <Pagination
+          isCompact
+          showControls
+          showShadow
+          color="primary"
+          page={page}
+          total={pages}
+          onChange={setPage}
+        />
+        <div className="hidden sm:flex w-[30%] justify-end gap-2">
+          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
+            Previous
+          </Button>
+          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
+            Next
+          </Button>
+        </div>
+      </div>
+    );
+  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
+
   return (
     <>
-      <h1 className="text-3xl font-bold pb-3">ユーザー管理</h1>
-      <Table aria-label="Example table with dynamic content">
-        <TableHeader columns={columns}>
+      <Toaster position="bottom-right" toastOptions={{
+        className: 'bg-default text-foreground dark:bg-default dark:text-foreground',
+      }} />
+      <h1 className="text-3xl font-bold pb-4">ユーザー管理</h1>
+      <Table
+        aria-label="ユーザー一覧"
+        isHeaderSticky
+        color="primary"
+        bottomContent={bottomContent}
+        bottomContentPlacement="outside"
+        classNames={{
+          wrapper: "max-h-[382px]",
+        }}
+        selectedKeys={selectedKeys}
+        selectionMode="multiple"
+        sortDescriptor={sortDescriptor}
+        topContent={topContent}
+        topContentPlacement="outside"
+        onSelectionChange={setSelectedKeys}
+        onSortChange={setSortDescriptor}
+      >
+        <TableHeader columns={headerColumns}>
           {(column) => (
-            <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
+            <TableColumn
+              key={column.uid}
+              align={column.uid === "actions" ? "center" : "start"}
+              allowsSorting={column.sortable}
+            >
               {column.name}
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={users}>
+        <TableBody emptyContent={"ユーザーが見つかりませんでした"} items={sortedItems}>
           {(item) => (
             <TableRow key={item.id}>
               {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
@@ -266,6 +619,8 @@ const DashboardPage: React.FC = () => {
         </TableBody>
       </Table>
       <EditUserModal />
+      <DeleteUserModal />
+      <CreateUserModal />
     </>
   );
 };

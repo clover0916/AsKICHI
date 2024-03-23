@@ -1,6 +1,6 @@
 "use client";
 
-import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, User } from "@nextui-org/react";
+import { Avatar, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, User } from "@nextui-org/react";
 import clsx from "clsx";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
@@ -8,9 +8,9 @@ import { useRouter } from "next/navigation";
 import { LuExternalLink } from "react-icons/lu";
 
 const roles = [
-  { value: "admin", label: "管理者" },
-  { value: "teacher", label: "教師" },
-  { value: "student", label: "生徒" },
+  { value: "ADMIN", label: "管理者" },
+  { value: "TEACHER", label: "教師" },
+  { value: "STUDENT", label: "生徒" },
 ];
 
 type items = {
@@ -45,7 +45,7 @@ export default function LoginButton({ session }: { session: Session | null }) {
       }
     ];
 
-    if (session?.user?.role === "admin") {
+    if (session?.user?.role === "ADMIN") {
       items.splice(1, 0, {
         key: "dashboard",
         label: "ダッシュボード",
@@ -54,17 +54,26 @@ export default function LoginButton({ session }: { session: Session | null }) {
     }
 
     return (
-      <Dropdown placement="bottom-start">
+      <Dropdown placement="bottom-end">
         <DropdownTrigger>
-          <User
-            as="button"
-            avatarProps={{
-              size: "sm",
-            }}
-            className="transition-transform"
-            description={roles.find((role) => role.value === session?.user?.role)?.label || "未設定"}
-            name={session?.user?.name}
-          />
+          <div>
+            <User
+              as="button"
+              avatarProps={{
+                size: "sm",
+              }}
+              className="transition-transform hidden sm:flex"
+              description={roles.find((role) => role.value === session?.user?.role)?.label || "未設定"}
+              name={session?.user?.name}
+            />
+            <Avatar
+              as="button"
+              size="sm"
+              src={session?.user?.image || undefined}
+              name={session?.user?.name}
+              className="transition-transform sm:hidden"
+            />
+          </div>
         </DropdownTrigger>
         <DropdownMenu aria-label="User Actions" variant="flat" items={items} onAction={(key) => {
           if (key === "logout") {

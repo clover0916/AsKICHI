@@ -19,6 +19,7 @@ const LoginForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,6 +30,8 @@ const LoginForm = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    setIsLoading(true)
 
     const callbackUrl = searchParams.get('callbackUrl') || '/'
 
@@ -41,6 +44,7 @@ const LoginForm = () => {
       })
       if (response?.error) {
         setError("エラーが発生しました。メールアドレスがパスワードが間違っている可能性があります")
+        setIsLoading(false)
       } else {
         router.push(callbackUrl)
       }
@@ -87,7 +91,7 @@ const LoginForm = () => {
                 <Spacer y={2} />
               </>
             )}
-            <Button type="submit" isDisabled={!canSubmit}>ログイン</Button>
+            <Button type="submit" isDisabled={!canSubmit} isLoading={isLoading}>ログイン</Button>
           </form>
           <Spacer y={2} />
           <Link href={"/faq?q=forget_password"} className='text-sm'>パスワードを忘れた</Link>
