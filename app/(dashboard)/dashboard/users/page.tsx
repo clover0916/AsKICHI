@@ -22,7 +22,6 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  Tooltip,
   User,
   useDisclosure,
 } from "@nextui-org/react";
@@ -34,6 +33,8 @@ import { Selection, SortDescriptor } from "@react-types/shared";
 import { SearchIcon } from "@/components/icons";
 import { ChevronDownIcon } from "@/components/ChevronDownIcon";
 import { PlusIcon } from "@/components/PlusIcon";
+import { VerticalDotsIcon } from "@/components/VerticalDotIcon";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface IUser {
   id: string;
@@ -49,7 +50,9 @@ interface IUser {
 const headerColumns = [
   { uid: "name", name: "名前", sortable: true },
   { uid: "id", name: "ID", sortable: true },
-  { uid: "role", name: "ロール", sortable: true },
+  { uid: "role", name: "ロール" },
+  { uid: "createdAt", name: "作成日", sortable: true },
+  { uid: "updatedAt", name: "更新日", sortable: true },
   { uid: "actions", name: "アクション" },
 ];
 
@@ -84,6 +87,7 @@ const DashboardPage: React.FC = () => {
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
+  const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
   const hasSearchFilter = Boolean(filterValue);
 
   const filteredItems = React.useMemo(() => {
@@ -177,59 +181,6 @@ const DashboardPage: React.FC = () => {
   const handleEditUser = (user: IUser) => {
     setEditingUser(user);
     onEditOpen();
-  };
-
-  const renderCell = (user: IUser, columnKey: React.Key) => {
-    const cellValue = user[columnKey as keyof IUser];
-
-    switch (columnKey) {
-      case "name":
-        return (
-          <User description={user.email} name={cellValue}>
-            {user.email}
-          </User>
-        );
-      case "id":
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-sm capitalize">{cellValue}</p>
-          </div>
-        );
-      case "role":
-        return (
-          <Chip
-            className="capitalize"
-            color={roles.find((role) => role.key === user.role)?.color}
-            size="sm"
-            variant="flat"
-          >
-            {roles.find((role) => role.key === user.role)?.label}
-          </Chip>
-        );
-      case "actions":
-        return (
-          <div className="relative flex items-center gap-2">
-            <Tooltip content="編集">
-              <span
-                className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                onClick={() => handleEditUser(user)}
-              >
-                <EditIcon />
-              </span>
-            </Tooltip>
-            <Tooltip color="danger" content="消去">
-              <span
-                className="text-lg text-danger cursor-pointer active:opacity-50"
-                onClick={() => deleteUser(user)}
-              >
-                <DeleteIcon />
-              </span>
-            </Tooltip>
-          </div>
-        );
-      default:
-        return cellValue;
-    }
   };
 
   const EditUserModal = () => {
@@ -365,6 +316,7 @@ const DashboardPage: React.FC = () => {
         fetchUsers();
       });
       onDeleteClose();
+      setSelectedKeys(new Set([]));
     }
 
     return (
@@ -376,12 +328,71 @@ const DashboardPage: React.FC = () => {
             </ModalHeader>
             <ModalBody>
               <p>本当にこのユーザーを削除しますか？</p>
+              <p className="text-bold">{editingUser?.name}</p>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={onDeleteClose}>
+              <Button color="primary" variant="light" onPress={onDeleteClose}>
                 閉じる
               </Button>
-              <Button color="primary" type="submit">
+              <Button color="danger" type="submit">
+                削除
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
+  const BulkDeleteUserModal = () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const fetchAPI = new Promise<void>((resolve, reject) => {
+        fetch("/api/users/bulk-delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ids: Array.from(selectedKeys),
+          }),
+        }).then((response) => {
+          if (response.ok) {
+            resolve();
+          } else {
+            reject();
+          }
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+      toast.promise(fetchAPI, {
+        loading: "削除中...",
+        success: "ユーザーを削除しました",
+        error: "ユーザーの削除に失敗しました",
+      }).then(() => {
+        fetchUsers();
+      });
+      onBulkDeleteClose();
+      setSelectedKeys(new Set([]));
+    }
+
+    return (
+      <Modal isOpen={isBulkDeleteOpen} onClose={onBulkDeleteClose}>
+        <ModalContent>
+          <form onSubmit={handleSubmit}>
+            <ModalHeader>
+              <h4 id="modal-title">ユーザーを削除</h4>
+            </ModalHeader>
+            <ModalBody>
+              <p>本当に選択したユーザーを削除しますか？</p>
+              <p className="text-bold">{Array.from(selectedKeys).join(", ")}</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="primary" variant="light" onPress={onBulkDeleteClose}>
+                閉じる
+              </Button>
+              <Button color="danger" type="submit">
                 削除
               </Button>
             </ModalFooter>
@@ -395,7 +406,7 @@ const DashboardPage: React.FC = () => {
     const [amount, setAmount] = useState<string>("1");
     const createRandomUser = async () => {
       const fetchAPI = new Promise<void>((resolve, reject) => {
-        fetch("/api/users/create_random", {
+        fetch("/api/users/create-random", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -458,17 +469,78 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  const onNextPage = React.useCallback(() => {
-    if (page < pages) {
-      setPage(page + 1);
-    }
-  }, [page, pages]);
+  const renderCell = (user: IUser, columnKey: React.Key) => {
+    const cellValue = user[columnKey as keyof IUser];
 
-  const onPreviousPage = React.useCallback(() => {
-    if (page > 1) {
-      setPage(page - 1);
+    switch (columnKey) {
+      case "name":
+        return (
+          <User description={user.email} name={cellValue}>
+            {user.email}
+          </User>
+        );
+      case "id":
+        return (
+          <div className="flex flex-col">
+            <p className="text-bold text-sm capitalize">{cellValue}</p>
+          </div>
+        );
+      case "role":
+        return (
+          <Chip
+            className="capitalize"
+            color={roles.find((role) => role.key === user.role)?.color}
+            size="sm"
+            variant="flat"
+          >
+            {roles.find((role) => role.key === user.role)?.label}
+          </Chip>
+        );
+      case "createdAt":
+        return new Date(cellValue as string).toLocaleString();
+      case "updatedAt":
+        return new Date(cellValue as string).toLocaleString();
+      case "actions":
+        return (
+          <div className="relative flex justify-end items-center gap-2">
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="light">
+                  <VerticalDotsIcon className="text-default-300" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="ユーザーアクション"
+                onAction={(key) => {
+                  if (key === "edit") {
+                    handleEditUser(user);
+                  } else if (key === "delete") {
+                    deleteUser(user);
+                  }
+                }}
+              >
+                <DropdownItem
+                  key="edit"
+                  startContent={<EditIcon />}
+                >
+                  編集
+                </DropdownItem>
+                <DropdownItem
+                  key="delete"
+                  className="text-danger"
+                  color="danger"
+                  startContent={<DeleteIcon />}
+                >
+                  消去
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        );
+      default:
+        return cellValue;
     }
-  }, [page]);
+  };
 
   const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
@@ -549,12 +621,7 @@ const DashboardPage: React.FC = () => {
 
   const bottomContent = useMemo(() => {
     return (
-      <div className="py-2 px-2 flex justify-between items-center">
-        <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === "all"
-            ? "All items selected"
-            : `${selectedKeys.size} of ${filteredItems.length} selected`}
-        </span>
+      <div className="py-2 px-2 flex justify-end items-center">
         <Pagination
           isCompact
           showControls
@@ -564,17 +631,9 @@ const DashboardPage: React.FC = () => {
           total={pages}
           onChange={setPage}
         />
-        <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            Previous
-          </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Next
-          </Button>
-        </div>
       </div>
     );
-  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
+  }, [page, pages]);
 
   return (
     <>
@@ -588,9 +647,6 @@ const DashboardPage: React.FC = () => {
         color="primary"
         bottomContent={bottomContent}
         bottomContentPlacement="outside"
-        classNames={{
-          wrapper: "max-h-[382px]",
-        }}
         selectedKeys={selectedKeys}
         selectionMode="multiple"
         sortDescriptor={sortDescriptor}
@@ -618,8 +674,35 @@ const DashboardPage: React.FC = () => {
           )}
         </TableBody>
       </Table>
+      <AnimatePresence>
+        {(selectedKeys == "all" || selectedKeys.size > 0) && (
+          <motion.div className="fixed flex left-0 bottom-0 w-full justify-center mb-4"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ type: "tween", duration: 0.2 }}
+          >
+            <div className="flex gap-2 px-4 py-2 bg-background shadow-lg rounded-lg items-center">
+              <span className="text-small text-default-400">
+                {selectedKeys === "all"
+                  ? "すべてのユーザーを選択"
+                  : `${selectedKeys.size} / ${filteredItems.length} 選択`}
+              </span>
+              <Button
+                isIconOnly
+                color="danger"
+                variant="light"
+                onClick={onBulkDeleteOpen}
+              >
+                <DeleteIcon />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <EditUserModal />
       <DeleteUserModal />
+      <BulkDeleteUserModal />
       <CreateUserModal />
     </>
   );

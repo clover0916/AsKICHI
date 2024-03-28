@@ -64,13 +64,13 @@ export default function LoginButton({ session }: { session: Session | null }) {
               }}
               className="transition-transform hidden sm:flex"
               description={roles.find((role) => role.value === session?.user?.role)?.label || "未設定"}
-              name={session?.user?.name}
+              name={session?.user?.name || ""}
             />
             <Avatar
               as="button"
               size="sm"
               src={session?.user?.image || undefined}
-              name={session?.user?.name}
+              name={session?.user?.name || ""}
               className="transition-transform sm:hidden"
             />
           </div>
